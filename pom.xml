@@ -96,6 +96,13 @@
             <artifactId>logback-classic</artifactId>
         </dependency>
 
+        <!--dubbo依賴包-->
+        <dependency>
+            <groupId>io.dubbo.springboot</groupId>
+            <artifactId>spring-boot-starter-dubbo</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+
 
     </dependencies>
 

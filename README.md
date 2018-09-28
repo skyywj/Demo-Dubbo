@@ -1,58 +1,53 @@
-此项目为demo-grpc项目
+此项目为demo-dubbo
 
-学习springboot连接mysql
+学习dubbo相关知识
 
-在此附上grpc的官方文档：
-       
-        https://grpc.io/docs/quickstart/java.html
-        http://doc.oschina.net/grpc?t=61535
+重要的两点是：@Service 和 @Reference  (注意引入alibaba的相关包，不能是其他的)
 
-将demo项目克隆并添加到新的github项目的步骤：
 
-    1）git clone Demo项目
-    2）git remote rm origin
-    3) git remote add origin git@github.com:skyywj/Demo-Grpc.git
-    4) rm -rf .git
-    5) rm -rf .gitignore
-    6) git init
-    7) git pull origin master --alow-unrelated-histories
-    8) git add .
-    9) git commit .
-    10) git push
+1、application.properties配置：
+
+    #dubbo相关配置
     
+    #dubbo提供者的别名，只是个标识
+    spring.dubbo.application.name=provider
+    #zk地址
+    dubbo.registry.address=zookeeper://127.0.0.1:8801
+    #dubbo协议
+    dubbo.protocol.name=dubbo
+    #duboo端口号
+    dubbo.protocol.port=12345
+    #这是你要发布到dubbo的接口所在包位置
+    dubbo.scan=test.spring.dubboService
   
- 如果有多余的东西，需要另行处理，比如重新clone一个新的项目后直接删除操作，然后再提交。
+2、引入maven依赖：
 
-gRPC 默认使用 protocol buffers 作为接口定义语言,在项目中采用proto新建仓库的策略以保证接口可以供Android ios等共用，但ios Android编译proto的方式不同
+    <!--dubbo依賴包-->
+            <dependency>
+                <groupId>io.dubbo.springboot</groupId>
+                <artifactId>spring-boot-starter-dubbo</artifactId>
+                <version>1.0.0</version>
+            </dependency>
+            
+3、原理：
 
-    新建proto项目，并在本项目中引入
-        1、新建springboot项目protodemo
-        2、删除不必要的文件，目录格式也需要修改
-        3、pom.xml 添加依赖包grpc-all(项目中的几个),protobuf-java,jersey-rpc-support,jersey-server
-        4、pom.xml 添加build
-        5、新建test.proto文件，并写好接口
-        6、编译 mvn compile
-        7、安装 mvn install(安装到本地~/.m2/resposity下)
-    接口项目完成操作，接下来是项目具体引入
-        1、~/.m2/settings.xml配置需要有，这个自己百度配置
-        2、引入本地依赖，说明一下具体
-                <dependency>
-                //groupid为项目名
-                    <groupId>test-proto</groupId>
-                //artifactId为install后:repository后，版本名前的路径,以.连接的路径 如com.abc
-                    <artifactId>protodemo</artifactId>
-                    <version>0.0.1-SNAPSHOT</version>
-                </dependency>
-        3、mvn compile 成功即可。
-        4、引入springboot标准grpc依赖包grpc-spring-boot-starter、jersey-rpc-support、grpc-netty、grpc-protobuf
-        5、写grpc层。使用@GRpcService，代码逻辑尽量放到service层，不要让grpc层太臃肿(第二次说了)
-        
-完成以上之后，让我头疼的事情是grpc层的测试
+![Image text](./src/main/resources/images/dubbo原理图.png)
     
-    网上有说使用mock grpc进行单元测试的，但我看到有好多东西现在已经不支持，具体没试过，还请大佬轻批。
-        https://www.scienjus.com/mock-grpc-in-java-unit-test/
-    本项目 采用的是netty channal的方式  （具体请自己查阅）
+    节点角色说明：Provider: 暴露服务的服务提供方。Consumer: 调用远程服务的服务消费方。Registry: 服务注册与发现的注册中心。Monitor: 统计服务的调用次调和调用时间的监控中心。Container: 服务运行容器。
     
-    测试时请先运行HrProsApplication.java,然后再去跑grpc的单元测试，否则报refuse connect 127.0.0.1.6565的错误。
+    调用关系说明：
+    0. 服务容器负责启动，加载，运行服务提供者。
+    1. 服务提供者在启动时，向注册中心注册自己提供的服务。
+    2. 服务消费者在启动时，向注册中心订阅自己所需的服务。
+    3. 注册中心返回服务提供者地址列表给消费者，如果有变更，注册中心将基于长连接推送变更数据给消费者。
+    4. 服务消费者，从提供者地址列表中，基于软负载均衡算法，选一台提供者进行调用，如果调用失败，再选另一台调用。
+    5. 服务消费者和提供者，在内存中累计调用次数和调用时间，定时每分钟发送一次统计数据到监控中心。
+    
+    Consumer服务消费者，Provider服务提供者。Container服务容器。消费当然是invoke提供者了，invoke这条实线按照图上的说明当然同步的意思了，多说一句，在实际调用过程中，Provider的位置对于Consumer来说是透明的，上一次调用服务的位置（IP地址）和下一次调用服务的位置，是不确定的。这个地方就是实现了软负载。
+    服务提供者先启动start，然后注册register服务。
+    消费订阅subscribe服务，如果没有订阅到自己想获得的服务，它会不断的尝试订阅。新的服务注册到注册中心以后，注册中心会将这些服务通过notify到消费者。
+    Monitor这是一个监控，图中虚线表明Consumer 和Provider通过异步的方式发送消息至Monitor，Consumer和Provider会将信息存放在本地磁盘，平均1min会发送一次信息。Monitor在整个架构中是可选的（图中的虚线并不是可选的意思），Monitor功能需要单独配置，不配置或者配置以后，Monitor挂掉并不会影响服务的调用。
+ 
+4、测试说明
 
-日志系统采用的是logback，添加logback.xml 和lognet依赖
+    详见service层的DubboDemoService.java 和 TestDemoDubboService.java
