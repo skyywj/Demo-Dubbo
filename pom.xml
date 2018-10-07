@@ -117,6 +117,13 @@
             <version>5.0.4.Final</version>
         </dependency>
 
+        <!--dubbo服务API-->
+        <dependency>
+            <groupId>HrPros</groupId>
+            <artifactId>service-api</artifactId>
+            <version>0.0.10</version>
+        </dependency>
+
     </dependencies>
 
 </project>

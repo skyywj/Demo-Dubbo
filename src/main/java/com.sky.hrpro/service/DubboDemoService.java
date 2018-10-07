@@ -1,5 +1,7 @@
 package com.sky.hrpro.service;
 
+import api.demo.DemoInterface;
+import api.demo.bean.DemoBean;
 import com.alibaba.dubbo.config.annotation.Service;
 import com.sky.hrpro.dao.TestDao;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,13 +11,18 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @Date: 2018/9/28 下午1:20
  */
 @Service(version = "1.0.0")
-public class DubboDemoService {
+public class DubboDemoService implements DemoInterface {
 
     @Autowired
     private TestDao testDao;
 
-    public void addtest(){
-        testDao.addTest();
+    /**
+     * dubbo服务层去实现service-api定义的接口
+     * 返回对应的返回值
+     * entity层就上浮到service-api中
+     */
+    @Override
+    public DemoBean getDemoBean(int id) {
+        return testDao.getById(id);
     }
-
 }

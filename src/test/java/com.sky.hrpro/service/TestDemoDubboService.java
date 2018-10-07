@@ -4,6 +4,7 @@ package com.sky.hrpro.service;
 import com.alibaba.dubbo.config.annotation.Reference;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.stereotype.Component;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -21,10 +22,9 @@ public class TestDemoDubboService {
     @Reference(version = "1.0.0")
     private DubboDemoService dubboDemoService;
 
-
     @Test
-    public void testDubbo(){
-        dubboDemoService.addtest();
+    public void testServiceApi(){
+        System.out.println(dubboDemoService.getDemoBean(40));
     }
 
 }
