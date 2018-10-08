@@ -1,4 +1,4 @@
-此项目为demo-dubbo
+此项目为demo-dubbo : 加入service-api之后此项目为Dubbo的provider
 
 学习dubbo相关知识
 
