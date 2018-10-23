@@ -8,7 +8,6 @@ package com.sky.hrpro.grpc;
  */
 
 import com.test.grpc.ProtodemoGrpc;
-import com.test.grpc.testRequest;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,7 +48,7 @@ public class Test extends TestBase<ProtodemoGrpc.ProtodemoBlockingStub> {
      */
     @org.junit.Test
     public void test(){
-        getStub().test(testRequest.newBuilder().setId(1).build());
+//        getStub().test(testRequest.newBuilder().setId(1).build());
         logger.error("test error..........");
     }
 }
