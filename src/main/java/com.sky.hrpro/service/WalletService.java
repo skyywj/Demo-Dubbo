@@ -1,9 +1,10 @@
 package com.sky.hrpro.service;
 
-import com.sky.hrpro.dao.IdDao;
+import com.alibaba.dubbo.config.annotation.Reference;
 import com.sky.hrpro.dao.WalletDao;
 import com.sky.hrpro.dao.WalletInDao;
 import com.sky.hrpro.dao.WalletOutDao;
+import com.sky.hypro.service.Idservice.IdService;
 import com.sky.hypro.service.wallet.RecordBean;
 import com.sky.hypro.service.wallet.WalletBean;
 import com.sky.hypro.service.wallet.WalletInterface;
@@ -12,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.lang.invoke.MethodHandles;
 import java.math.BigDecimal;
 import java.util.List;
@@ -36,9 +36,8 @@ public class WalletService implements WalletInterface {
     @Autowired
     private WalletOutDao walletOutDao;
 
-    @Autowired
-    private IdDao idDao;
-
+    @Reference
+    private IdService idService;
     /**
      * 获取用户余额
      */
@@ -87,6 +86,7 @@ public class WalletService implements WalletInterface {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public boolean updateBalance(RecordBean recordBean) {
+        recordBean.setId(idService.snowflakeNextId());
         BigDecimal record = walletDao.getBalaceByUserId(recordBean.getUserId());
         if (record == null) {
             initUserWallet(recordBean);
@@ -113,7 +113,7 @@ public class WalletService implements WalletInterface {
 
     private void initUserWallet(RecordBean recordBean) {
         WalletBean walletBean = new WalletBean();
-        walletBean.setId(idDao.nextId());
+        walletBean.setId(idService.snowflakeNextId());
         walletBean.setUserId(recordBean.getUserId());
         walletBean.setBalance(BigDecimal.ZERO.add(recordBean.getAmount()));
         walletBean.setCreateTime(System.currentTimeMillis());
